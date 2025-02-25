@@ -83,22 +83,23 @@ deltasCorrect= np.zeros_like(initial_matrix)
 # while residuum < :
 
 while counter < 400000:
-    if counter % 100 == 0:
-        u_speeds = np.array([[sub_array[1] for sub_array in row] for row in past])
-        v_speeds = np.array([[sub_array[2] for sub_array in row] for row in past])
+    
+    u_speeds = np.array([[sub_array[1] for sub_array in row] for row in past])
+    v_speeds = np.array([[sub_array[2] for sub_array in row] for row in past])
         
         
-        umax_now = np.max(u_speeds)
-        vmax_now = np.max(v_speeds)
+    umax_now = np.max(u_speeds)
+    vmax_now = np.max(v_speeds)
         
-        pressures = np.array([[sub_array[0] for sub_array in row] for row in past])
-        p_max = np.max(pressures)
-        p_min = np.min(pressures)
+    pressures = np.array([[sub_array[0] for sub_array in row] for row in past])
+    p_max = np.max(pressures)
+    p_min = np.min(pressures)
         
         
         
-        tau = 0.1 * 1 / ( (umax_now + (umax_now**2 + beta**2)**0.5)/h + (vmax_now + (vmax_now**2 + beta**2)**0.5)/h + 2*nu*(1/(h**2) + 1/(h**2))  )
-        
+    tau = 0.5 * 1 / ( (umax_now + (umax_now**2 + beta**2)**0.5)/h + (vmax_now + (vmax_now**2 + beta**2)**0.5)/h + 2*nu*(1/(h**2) + 1/(h**2))  )
+    suma = np.array([0,0,0])   
+    
     #Predictor section
     
     for i in range(1,N+2):
@@ -149,17 +150,21 @@ while counter < 400000:
             predict[i,j][1] = W_predict[1]
             predict[i,j][2] = W_predict[2] 
             
-            #Pressure at walls
-            for k in range(0,N+3):
-                predict[k, 0][0] = predict[k, 1][0]
-                predict[k,-1][0] = predict[k,-2][0]
+    # Boundary conditions
+            
+    #Pressure at walls
+    for k in range(0,N+3):
+        predict[k, 0][0] = predict[k, 1][0]
+        predict[k,-1][0] = predict[k,-2][0]
+        
+    #Left and right boundary
+    for m in range(0, M+1):
+        predict[0, m][1] = predict[1, m][1]
+        predict[-1, m][1] = predict[-2, m][1]
+        predict[0, m][2] = predict[1, m][2]
+        predict[-1, m][2] = predict[-2, m][2]
                 
-            #Left and right boundary
-            for m in range(0, M+1):
-                predict[0, m][1] = predict[1, m][1]
-                predict[-1, m][1] = predict[-2, m][1]
-                predict[0, m][2] = predict[1, m][2]
-                predict[-1, m][2] = predict[-2, m][2]
+            
             
                     
             
@@ -204,15 +209,15 @@ while counter < 400000:
             deltaWcorrect = np.dot(invDbeta, -(F_right-F_this)/h - (G_up-G_this)/h  + temp   )
             deltasCorrect[i,j] = deltaWcorrect
             
-    
-    suma = np.array([0,0,0])
-    for i in range(1,N+2):
-        for j in range(1,M):  
+            
+            
             deltaW = 0.5*(deltasPredict[i,j]+deltasCorrect[i,j])
             suma = suma + deltaW*deltaW
             past[i,j][0] = past[i,j][0] + tau*deltaW[0]
             past[i,j][1] = past[i,j][1] + tau*deltaW[1]
             past[i,j][2] = past[i,j][2] + tau*deltaW[2]
+            
+    
             
     #Pressure at walls
     for i in range(0,N+3):

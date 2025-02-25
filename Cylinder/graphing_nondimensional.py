@@ -8,7 +8,7 @@ with open('residues.txt', 'r') as file:
         # Assuming each line in the file is a string representation of a NumPy array
         residues.append(np.fromstring(line.strip(), sep=' '))
 
-# Load the past array from the binary file
+# Load the  array from the binary file
 past = np.load('past_array.npy', allow_pickle=True)
 
 # Create three 2D matrices to store the first, second, and third subelements
